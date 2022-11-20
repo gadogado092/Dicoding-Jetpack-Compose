@@ -19,6 +19,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.dicodingjetpackcompose.ui.theme.DicodingJetpackComposeTheme
 
+enum class Scale(val scaleName: String) {
+    CELSIUS("Celsius"),
+    FAHRENHEIT("Fahrenheit")
+}
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,6 +36,54 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
+private fun TwoWayConverterApp(
+    modifier: Modifier = Modifier,
+) {
+    var celsius by remember { mutableStateOf("") }
+    var fahrenheit by remember { mutableStateOf("") }
+    Column(modifier.padding(16.dp)) {
+        Text(
+            text = stringResource(R.string.two_way_converter),
+            style = MaterialTheme.typography.h5
+        )
+        GeneralTemperatureInput(
+            scale = Scale.CELSIUS,
+            input = celsius,
+            onValueChange = { newInput ->
+                celsius = newInput
+                fahrenheit = convertToFahrenheit(newInput)
+            }
+        )
+        GeneralTemperatureInput(
+            scale = Scale.FAHRENHEIT,
+            input = fahrenheit,
+            onValueChange = { newInput ->
+                fahrenheit = newInput
+                celsius = convertToCelsius(newInput)
+            }
+        )
+    }
+}
+
+@Composable
+fun GeneralTemperatureInput(
+    scale: Scale,
+    input: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier) {
+        OutlinedTextField(
+            value = input,
+            label = { Text(stringResource(R.string.enter_temperature, scale.scaleName)) },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            onValueChange = onValueChange,
+        )
+    }
+}
+
+
+@Composable
 fun TemperatureApp() {
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -39,6 +92,7 @@ fun TemperatureApp() {
         Column {
             StatefulTemperatureInput()
             CallStatelessTemperatureInput()
+            TwoWayConverterApp()
         }
     }
 }
@@ -105,6 +159,11 @@ fun StatelessTemperatureInput(
 private fun convertToFahrenheit(celsius: String) =
     celsius.toDoubleOrNull()?.let {
         (it * 9 / 5) + 32
+    }.toString()
+
+private fun convertToCelsius(fahrenheit: String) =
+    fahrenheit.toDoubleOrNull()?.let {
+        (it - 32) * 5 / 9
     }.toString()
 
 @Preview(showBackground = true)
